@@ -1,0 +1,36 @@
+{
+  "id": "./",
+  "name": "PROMPT PACKER",
+  "short_name": "Prompt Packer",
+  "description": "A local-first prompt library and prompt workshop. Organise prompts into folders, improve and analyse them with AI (or manually), import and export .txt files, back up, restore and share. Works offline.",
+  "lang": "en",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0e1014",
+  "theme_color": "#0e1014",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

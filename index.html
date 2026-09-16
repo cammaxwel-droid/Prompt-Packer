@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>PROMPT PACKER - local prompt library and prompt workshop</title>
+<meta name="theme-color" content="#0e1014">
+<link rel="stylesheet" href="styles.css">
+<link rel="icon" href="icons/favicon.svg">
+<meta name="description" content="PROMPT PACKER - an offline-first prompt library and prompt workshop. Your prompts are stored in your own browser, not on a server.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="PROMPT PACKER">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar" class="pane sidebar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 64 64" aria-hidden="true">
+        <rect x="2" y="2" width="60" height="60" rx="14" fill="#1b202a" stroke="#313a49"/>
+        <path d="M18 46V19.5C18 18.7 18.7 18 19.5 18h13.2c5.6 0 9.6 3.6 9.6 8.9 0 5.4-4 9-9.6 9h-7.3v10.1c0 .8-.7 1.5-1.5 1.5H19.5c-.8 0-1.5-.7-1.5-1.5Zm6.4-15.6h6.1c2.3 0 3.8-1.3 3.8-3.5 0-2.1-1.5-3.4-3.8-3.4h-6.1v6.9Z" fill="#7c9cff"/>
+        <circle cx="44" cy="43" r="3" fill="#41d6a4"/>
+      </svg>
+      <div>
+        <div class="brand-title">PROMPT PACKER</div>
+        <div class="brand-sub">local prompt library</div>
+      </div>
+      <span class="spacer"></span>
+      <button id="sidebarCloseBtn" class="btn tiny mobile-only" aria-label="Close library panel">Close</button>
+    </div>
+
+    <div class="side-controls">
+      <input id="searchInput" class="input" type="search" placeholder="Search titles, text, tags, folders" autocomplete="off" aria-label="Search prompts">
+      <div class="row">
+        <button id="newPromptBtn" class="btn primary">+ New Prompt</button>
+        <button id="newFolderBtn" class="btn">+ New Folder</button>
+      </div>
+      <div id="filterChips" class="chips"></div>
+    </div>
+
+    <div class="side-split">
+      <div class="tree-wrap">
+        <div id="folderTree" class="tree"></div>
+      </div>
+      <div class="list-wrap">
+        <div class="list-head">
+          <span id="listLabel">All prompts</span>
+          <span id="listCount" class="count"></span>
+          <span class="spacer"></span>
+          <select id="sortSelect" class="mini" title="Sort order" aria-label="Sort order">
+            <option value="recent">Recent</option>
+            <option value="created">Newest</option>
+            <option value="title">Title A-Z</option>
+            <option value="title-desc">Title Z-A</option>
+            <option value="folder">Folder</option>
+          </select>
+        </div>
+        <div id="promptList" class="plist"></div>
+      </div>
+    </div>
+
+    <div class="side-footer">
+      <div class="row">
+        <button id="importTxtBtn" class="btn sm">Import TXT</button>
+        <button id="importBackupBtn" class="btn sm">Import Backup</button>
+      </div>
+      <div class="row">
+        <button id="exportBtn" class="btn sm">Export / Backup</button>
+        <button id="settingsBtn" class="btn sm">Settings</button>
+      </div>
+      <div id="storageNote" class="storage-note"></div>
+    </div>
+  </aside>
+
+  <main id="main" class="pane main">
+    <div class="mobile-bar" id="mobileBar">
+      <button id="libraryBtn" class="btn sm" aria-label="Open library panel" aria-expanded="false">Library</button>
+      <span class="mb-title" id="mbTitle">PROMPT PACKER</span>
+      <button id="aiToggleBtnM" class="btn sm" aria-label="Open AI assistant panel" aria-expanded="false">AI</button>
+    </div>
+
+    <div id="editorEmpty" class="empty">
+      <h2>No prompt selected</h2>
+      <p>Paste a prompt, write a new one, or import a folder of .txt files. Everything is saved locally in this browser - no account, no server, no database.</p>
+      <div class="empty-actions">
+        <button id="emptyNewBtn" class="btn primary">+ New Prompt</button>
+        <button id="emptyWorkshopBtn" class="btn">Prompt Workshop</button>
+        <button id="emptyImportBtn" class="btn">Import TXT</button>
+        <button id="emptyBackupBtn" class="btn">Import Backup</button>
+      </div>
+      <p class="hint">Tip: drag .txt files anywhere onto this window to import them.</p>
+    </div>
+
+    <div id="editorWrap" class="editor-wrap" hidden>
+      <div class="editor-head">
+        <div class="row">
+          <input id="titleInput" class="title-input" placeholder="Untitled prompt" autocomplete="off" aria-label="Prompt title">
+          <button id="favBtn" class="btn star-btn" title="Favourite this prompt" aria-label="Favourite this prompt" aria-pressed="false">Favourite</button>
+          <button id="aiToggleBtn" class="btn mobile-hide" title="Show or hide the AI assistant" aria-expanded="true">AI Panel</button>
+        </div>
+        <div class="editor-meta">
+          <label class="field">
+            <span class="lbl">FOLDER</span>
+            <select id="folderSelect" class="input" aria-label="Folder"></select>
+          </label>
+          <label class="field">
+            <span class="lbl">TYPE</span>
+            <select id="typeSelect" class="input" aria-label="Prompt type"></select>
+          </label>
+          <div class="field">
+            <span class="lbl">CONTENT LABEL</span>
+            <div id="ratingGroup" class="seg" role="group" aria-label="Content label"></div>
+          </div>
+          <label class="field grow">
+            <span class="lbl">TAGS</span>
+            <input id="tagsInput" class="input" placeholder="comma, separated, tags" autocomplete="off" aria-label="Tags, comma separated">
+          </label>
+        </div>
+      </div>
+
+      <textarea id="promptText" class="prompt-text" spellcheck="false" placeholder="Paste or write your prompt here..." aria-label="Prompt text"></textarea>
+
+      <div class="editor-foot">
+        <div id="saveStatus" class="save-status" role="status" aria-live="polite">Saved</div>
+        <div class="foot-actions">
+          <button id="saveBtn" class="btn sm primary">Save</button>
+          <button id="workshopBtn" class="btn sm" title="Open this prompt in the Prompt Workshop">Workshop</button>
+          <button id="duplicateBtn" class="btn sm">Duplicate</button>
+          <button id="moveBtn" class="btn sm">Move to Folder</button>
+          <button id="copyBtn" class="btn sm">Copy</button>
+          <button id="downloadBtn" class="btn sm">Download TXT</button>
+          <button id="shareBtn" class="btn sm">Share</button>
+          <button id="deleteBtn" class="btn sm danger">Delete</button>
+        </div>
+        <div id="promptStats" class="stats"></div>
+      </div>
+    </div>
+  </main>
+
+  <aside id="aiPanel" class="pane ai" role="complementary" aria-label="AI assistant">
+    <div class="ai-head">
+      <h2>AI ASSISTANT</h2>
+      <span id="aiStatusPill" class="pill">checking</span>
+      <span class="spacer"></span>
+      <button id="aiCloseBtn" class="btn tiny mobile-only" aria-label="Close AI assistant panel">Close</button>
+    </div>
+    <div class="ai-body">
+      <div class="workshop-card">
+        <div class="ai-group-title">PROMPT WORKSHOP</div>
+        <p class="hint">Work on a prompt with mode-aware actions, a practical checklist, variations, an assembler, and a manual fallback that still works with no AI connected.</p>
+        <div class="ai-actions">
+          <button id="wsOpenWorkshopBtn" class="ai-btn wide">WORKSHOP (PROMPT IN THE EDITOR)</button>
+          <button id="wsOpenPasteBtn" class="ai-btn">PASTE EXISTING PROMPT</button>
+          <button id="wsOpenBuildBtn" class="ai-btn">BUILD NEW PROMPT</button>
+        </div>
+      </div>
+
+      <div id="aiProviderNote" class="ai-note"></div>
+      <div id="aiActionsWrap"></div>
+
+      <div class="custom-box">
+        <div class="ai-group-title">CUSTOM INSTRUCTION</div>
+        <textarea id="customInstruction" class="input textarea-mono" aria-label="Custom AI instruction" placeholder="e.g. Make this more surreal. | Turn this into a detailed coding agent task. | Preserve everything but improve the structure."></textarea>
+        <button id="runCustomBtn" class="btn primary block">RUN CUSTOM INSTRUCTION</button>
+      </div>
+
+      <div id="aiResultWrap" hidden></div>
+      <div id="aiSortWrap" hidden></div>
+      <div id="aiManualWrap" hidden></div>
+    </div>
+  </aside>
+</div>
+
+<div id="scrim" class="scrim" hidden aria-hidden="true"></div>
+<div id="modalRoot"></div>
+<div id="toastRoot"></div>
+
+<div id="wsOverlay" class="ws-overlay" hidden>
+  <div class="ws-panel" role="dialog" aria-modal="true" aria-labelledby="wsTitle">
+    <div class="ws-head">
+      <span id="wsTitle" class="ws-badge">PROMPT WORKSHOP</span>
+      <span id="wsModePill" class="pill"></span>
+      <span class="spacer"></span>
+      <button id="wsHelpBtn" class="btn tiny" title="How the Prompt Workshop works">How this works</button>
+      <button id="wsCloseBtn" class="btn tiny" title="Close the workshop (Esc)">Close</button>
+    </div>
+
+    <div id="wsModes" class="ws-modes" role="tablist" aria-label="Workshop mode"></div>
+
+    <div class="ws-body">
+      <section class="ws-col ws-left" aria-label="Your prompt">
+        <div class="seg ws-source" id="wsSource" role="group" aria-label="Where the prompt comes from">
+          <button class="seg-btn" data-source="paste" type="button">PASTE EXISTING PROMPT</button>
+          <button class="seg-btn" data-source="build" type="button">BUILD NEW PROMPT</button>
+        </div>
+
+        <div id="wsSuggest" class="suggestion ws-suggest" hidden></div>
+
+        <div class="ws-label-row">
+          <label class="lbl" for="wsPrompt">PROMPT</label>
+          <span id="wsPromptMeta" class="ws-meta"></span>
+        </div>
+        <textarea id="wsPrompt" class="input ws-text" spellcheck="false" placeholder="Paste a prompt here to work on it, or start writing one..." aria-label="Workshop prompt"></textarea>
+
+        <div id="wsScore" class="ws-score"></div>
+
+        <div id="wsActions" class="ws-actions"></div>
+
+        <button id="wsAdvBtn" class="btn sm ghost block ws-adv-btn" type="button" aria-expanded="false" aria-controls="wsAdvBody">
+          <span id="wsAdvLabel">Advanced options</span> <span id="wsAdvCaret">&#9662;</span>
+        </button>
+        <div id="wsAdvBody" class="ws-adv" hidden></div>
+      </section>
+
+      <section class="ws-col ws-right" aria-label="Original and result">
+        <div id="wsTabs" class="seg ws-tabs" role="tablist" aria-label="Original or result">
+          <button class="seg-btn" data-tab="prompt" type="button" role="tab">ORIGINAL</button>
+          <button class="seg-btn" data-tab="result" type="button" role="tab">RESULT</button>
+        </div>
+
+        <div class="ws-rgrid">
+          <div id="wsPaneOriginal" class="ws-pane">
+            <div class="ws-pane-head">
+              <span class="ws-sub">ORIGINAL</span>
+              <span class="spacer"></span>
+              <span class="ws-sub-note">the input to the last action</span>
+            </div>
+            <div id="wsOriginalText" class="ws-readout"></div>
+          </div>
+
+          <div id="wsPaneResult" class="ws-pane">
+            <div class="ws-pane-head">
+              <span id="wsResultLabel" class="ws-sub">RESULT</span>
+              <span class="spacer"></span>
+              <span id="wsResultProgress" class="progress-line"></span>
+              <span id="wsResultPill" class="pill"></span>
+            </div>
+            <div id="wsResultNote" class="hint" hidden></div>
+            <textarea id="wsResultText" class="input ws-text" spellcheck="false" placeholder="The result appears here. Nothing is applied to your prompt until you press REPLACE ORIGINAL." aria-label="AI result"></textarea>
+            <div id="wsAnalysis" hidden></div>
+            <div id="wsVariations" hidden></div>
+            <div id="wsManualBox" hidden>
+              <div class="ai-group-title">NO AI CONNECTED - RUN THIS REQUEST IN ANY AI</div>
+              <textarea id="wsManualText" class="input textarea-mono ws-manual-text" readonly spellcheck="false" aria-label="AI request to copy"></textarea>
+              <div class="ai-result-actions">
+                <button id="wsManualCopyBtn" class="btn sm primary" type="button">COPY AI REQUEST</button>
+                <button id="wsManualRunBtn" class="btn sm" type="button">RUN WITH AI ANYWAY</button>
+                <button id="wsManualCloseBtn" class="btn sm ghost" type="button">CLOSE</button>
+              </div>
+              <div class="ai-group-title">PASTE THE AI ANSWER HERE</div>
+              <textarea id="wsManualAnswer" class="input textarea-mono ws-manual-text" placeholder="Paste the answer, then press USE AS RESULT." aria-label="Pasted AI answer"></textarea>
+              <div class="ai-result-actions">
+                <button id="wsManualUseBtn" class="btn sm primary" type="button">USE AS RESULT</button>
+              </div>
+            </div>
+            <div id="wsResultActions" class="ai-result-actions"></div>
+          </div>
+        </div>
+
+        <div id="wsChain" class="ws-chain" hidden></div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".txt,.md,.text,text/plain" multiple hidden aria-label="Import text files">
+<input type="file" id="backupInput" accept=".json,application/json" hidden aria-label="Import backup file">
+
+<script src="config.js"></script>
+<script src="storage.js"></script>
+<script src="ziplite.js"></script>
+<script src="ai.js"></script>
+<script src="workshop.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
